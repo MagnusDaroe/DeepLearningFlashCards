@@ -31,6 +31,23 @@ export default function WheelPicker({ topics, usedIds, onSelect }: Props) {
     drawWheel()
   }, [topics, usedIds]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+    const words = text.split(' ')
+    const lines: string[] = []
+    let current = ''
+    for (const word of words) {
+      const test = current ? `${current} ${word}` : word
+      if (ctx.measureText(test).width > maxWidth && current) {
+        lines.push(current)
+        current = word
+      } else {
+        current = test
+      }
+    }
+    if (current) lines.push(current)
+    return lines
+  }
+
   function drawWheel() {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -98,7 +115,15 @@ export default function WheelPicker({ topics, usedIds, onSelect }: Props) {
       ctx.font = `bold ${fontSize}px Segoe UI, system-ui, sans-serif`
       ctx.shadowColor = 'rgba(0,0,0,0.85)'
       ctx.shadowBlur = 6
-      ctx.fillText(label, 0, 0)
+
+      // Max text width is the chord at textR, minus padding
+      const maxWidth = 2 * textR * Math.sin(segRad / 2) * 0.72
+      const lines = wrapText(ctx, label, maxWidth)
+      const lineHeight = fontSize * 1.25
+      const totalHeight = (lines.length - 1) * lineHeight
+      lines.forEach((line, li) => {
+        ctx.fillText(line, 0, -totalHeight / 2 + li * lineHeight)
+      })
       ctx.restore()
     })
 
