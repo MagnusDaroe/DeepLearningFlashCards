@@ -4,7 +4,7 @@ Set-Location $PSScriptRoot
 
 # Check Node.js
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
-    Write-Error "Node.js is not installed. Download it from https://nodejs.org"
+    Write-Error "Node.js is not installed. Download it from https://nodejs.org or use winget install OpenJS.NodeJS"
     exit 1
 }
 
