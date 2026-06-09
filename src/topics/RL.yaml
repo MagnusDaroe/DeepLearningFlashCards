@@ -1,0 +1,159 @@
+id: reinforcement-learning
+title: Reinforcement Learning
+questions:
+  - id: q1
+    question: What is the primary difference between reinforcement learning and supervised learning?
+    answer: >
+      Supervised learning learns to predict outputs from labelled examples (one-shot prediction
+      such as classification or regression). Reinforcement learning instead learns how to act:
+      an agent takes sequential actions in an environment and receives reward signals, with the
+      goal of maximising cumulative reward over time — not predicting a fixed label.
+
+  - id: q2
+    question: What are the four core components of a Markov Decision Process (MDP)?
+    answer: >
+      A MDP is defined by (1) a state space S, describing all possible situations the agent
+      can be in; (2) an action space A, the set of choices available; (3) a transition function
+      (deterministic f(s,a) or stochastic P(s'|s,a)), describing how actions change state; and
+      (4) a reward function p(r|s,a), evaluating the immediate quality of an action.
+
+  - id: q3
+    question: What is the Markov property, and why does it matter for MDPs?
+    answer: >
+      The Markov property states that the probability of the next state s_{t+1} depends only on
+      the current state s_t, not on the full history of past states. This matters because it
+      makes the decision problem tractable: the agent only needs to know where it is now, not
+      everything that led there, in order to act optimally.
+
+  - id: q4
+    question: How does a stochastic MDP differ from a deterministic MDP?
+    answer: >
+      In a deterministic MDP the next state is fully determined by the current state and action:
+      s_{t+1} = f(s_t, a_t). In a stochastic MDP the next state is a random variable; the
+      deterministic transition function is replaced by a transition probability distribution
+      P(s_{t+1} | s_t, a_t), meaning the same action from the same state can lead to different
+      outcomes on different occasions.
+
+  - id: q5
+    question: What is a policy in reinforcement learning, and how is it related to value functions?
+    answer: >
+      A policy π(a|s) defines the agent's behaviour by specifying the probability of selecting
+      action a in state s. Value functions are always defined with respect to a policy: V^π(s)
+      is the expected cumulative return when starting in state s and following π. The goal of RL
+      is to find an optimal policy π* that maximises this value for every state.
+
+  - id: q6
+    question: What is the difference between the state-value function V(s) and the action-value function Q(s, a)?
+    answer: >
+      V(s) estimates how good it is to be in state s under a given policy, measured as the
+      expected return from that state onward. Q(s, a) estimates how good it is to take a
+      specific action a in state s, again in terms of expected return. The key distinction is
+      that Q captures the value of a particular (state, action) pair, while V marginalises
+      over all actions: V*(s) = max_a Q*(s, a).
+
+  - id: q7
+    question: What is the return in reinforcement learning, and how does the discount factor γ affect it?
+    answer: >
+      The return is the cumulative reward collected over time. In the infinite-horizon setting,
+      future rewards are discounted: V^π(s_t) = E[r_{t+1} + γr_{t+2} + γ²r_{t+3} + ...].
+      The discount factor γ ∈ [0,1) controls how much future rewards matter relative to
+      immediate ones. A γ close to 0 makes the agent myopic (only cares about immediate reward);
+      γ close to 1 makes it far-sighted. Discounting also ensures the sum converges for
+      continuing tasks.
+
+  - id: q8
+    question: What does the Bellman optimality equation express, and what is its recursive structure?
+    answer: >
+      The Bellman optimality equation expresses the value of a state under the optimal policy as:
+      V*(s) = max_a [E[r_{t+1}|s,a] + γ Σ_{s'} P(s'|s,a) V*(s')].
+      Its recursive structure says: the optimal value of being in state s equals the immediate
+      reward for taking the best action, plus the discounted optimal value of all possible
+      successor states. This self-referential definition links present decisions to future
+      consequences and is the foundation of both DP and RL algorithms.
+
+  - id: q9
+    question: How is the Bellman optimality equation expressed in action-value (Q) form, and how does it relate to the policy?
+    answer: >
+      The action-value form is: Q*(s,a) = E[r_{t+1}|s,a] + γ Σ_{s'} P(s'|s,a) max_{a'} Q*(s',a').
+      It says the optimal Q-value for (s,a) is the immediate expected reward plus the discounted
+      best Q-value achievable from the next state. The relationship to policy is:
+      V*(s) = max_a Q*(s,a) and π*(s) = argmax_a Q*(s,a) — knowing Q* immediately yields
+      the optimal greedy policy.
+
+  - id: q10
+    question: What is value iteration, and how does it use the Bellman equation to find optimal values?
+    answer: >
+      Value iteration is a dynamic programming algorithm that starts with arbitrary value
+      estimates and repeatedly applies the Bellman optimality update to every state:
+      Q(s,a) ← E[r|s,a] + γ Σ_{s'} P(s'|s,a)V(s'), then V(s) ← max_a Q(s,a).
+      This process is guaranteed to converge to V* because the Bellman operator is a contraction.
+      Once values have converged, the optimal policy is simply the greedy policy with respect
+      to V*.
+
+  - id: q11
+    question: What are the key limitations of dynamic programming, and why do they motivate reinforcement learning?
+    answer: >
+      DP requires a perfect, known model of the environment — both the transition probabilities
+      P(s'|s,a) and reward function p(r|s,a). It is also computationally expensive for large
+      state spaces, making it impractical for most real-world problems. When the model is
+      unknown or the state space is too large, we must instead learn from direct interaction
+      with the environment — this is the motivation for model-free reinforcement learning.
+
+  - id: q12
+    question: What is the exploration–exploitation trade-off in reinforcement learning?
+    answer: >
+      Exploitation means using current knowledge to choose the action believed to give the
+      highest reward. Exploration means trying new or less-known actions to gather information
+      that may lead to better long-term outcomes. The trade-off arises because exploiting too
+      greedily may lock the agent into a suboptimal policy, while exploring too much wastes
+      reward. Balancing them is a central challenge in RL.
+
+  - id: q13
+    question: How does ε-greedy exploration balance exploration and exploitation?
+    answer: >
+      With ε-greedy, the agent chooses the best known action (exploitation) with probability
+      1−ε, and selects a uniformly random action (exploration) with probability ε. The
+      parameter ε is typically annealed (decreased) over time so that early training involves
+      more exploration, while later training increasingly exploits the learned values. This
+      is simple to implement but treats all non-greedy actions equally regardless of their
+      estimated value.
+
+  - id: q14
+    question: What is temporal-difference (TD) learning, and how does it differ from dynamic programming?
+    answer: >
+      TD learning updates value estimates directly from sampled experience — a single transition
+      (s_t, a_t, r_{t+1}, s_{t+1}) — without requiring a known model. The TD error measures
+      the difference between the predicted value V(s_t) and the observed reward plus the
+      discounted next value: δ = r_{t+1} + γV(s_{t+1}) − V(s_t). DP, by contrast, computes
+      exact expectations over all successor states using the known model. TD learning
+      replaces these expectations with sampled observations.
+
+  - id: q15
+    question: Explain the Q-learning update rule, identifying the TD target and TD error.
+    answer: >
+      The Q-learning update is: Q̂(s_t,a_t) ← Q̂(s_t,a_t) + η(r_{t+1} + γ max_{a'} Q̂(s_{t+1},a') − Q̂(s_t,a_t)).
+      The TD target is r_{t+1} + γ max_{a'} Q̂(s_{t+1},a') — what the value should ideally be.
+      The TD error is the TD target minus the current estimate Q̂(s_t,a_t) — the "surprise"
+      that drives the update. The learning rate η scales how large a step is taken. This is a
+      model-free, sample-based approximation of the Bellman optimality equation.
+
+  - id: q16
+    question: Why does tabular Q-learning become infeasible for large state spaces, and how does DQN address this?
+    answer: >
+      Tabular Q-learning stores a separate Q-value for every (state, action) pair. For large or
+      continuous state spaces (e.g. raw pixel inputs from a game) the table grows intractably
+      large and most entries are never visited. Deep Q-Networks (DQN) replace the table with a
+      deep neural network Q(s,a;θ) that approximates Q-values by generalising across similar
+      states. The network is trained to minimise the squared TD error (Q-loss) between its
+      predictions and the TD targets.
+
+  - id: q17
+    question: What is the Q-loss used to train a DQN, and what does it minimise?
+    answer: >
+      The Q-loss (TD-loss) is the expected squared TD error:
+      L = E[||(r + γ max_{a'} Q(s',a')) − Q(s,a)||²].
+      The term in the first brackets is the TD target (the desired value), and Q(s,a) is the
+      network's current prediction. Minimising this loss via gradient descent pushes the
+      network's Q-value estimates toward the Bellman-optimal values, in the same way that
+      Q-learning does for a table but now with function approximation that scales to complex,
+      high-dimensional inputs.

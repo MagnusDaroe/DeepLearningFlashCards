@@ -1,0 +1,260 @@
+id: bias-fairness-xai
+title: Bias, Fairness & XAI
+questions:
+  - id: q1
+    question: What is the difference between a local and global explanation in XAI, and when would you use each?
+    answer: >
+      A local explanation explains why a model made a specific prediction for
+      a single input instance — for example, why a particular patient was
+      flagged as high stroke risk. A global explanation describes the model's
+      general behaviour across all inputs — for example, which features the
+      model relies on most across the entire dataset. Local explanations are
+      preferred when a single decision needs to be justified (e.g. a loan
+      rejection), while global explanations are used for auditing overall
+      model behaviour and detecting systematic patterns or bias.
+
+  - id: q2
+    question: What distinguishes a post-hoc XAI method from an intrinsically interpretable model?
+    answer: >
+      An intrinsically interpretable model is transparent by design — its
+      structure directly reveals how decisions are made. Examples include
+      linear regression and decision trees, where weights or decision rules
+      are directly readable. A post-hoc method is applied after training to
+      explain an already-trained black-box model without modifying it.
+      Examples include LIME, Grad-CAM, and SIDU. Post-hoc methods are more
+      flexible as they can be applied to any model, but they produce
+      approximations of the model's reasoning rather than exact explanations.
+
+  - id: q3
+    question: What are the desirable properties of a good XAI explanation, and why does satisfying all of them simultaneously present a challenge?
+    answer: >
+      Desirable properties include faithfulness (the explanation accurately
+      reflects the model's actual reasoning), comprehensibility (a human can
+      understand it), stability (similar inputs produce similar explanations),
+      and actionability (the explanation suggests what could be changed to get
+      a different outcome). The challenge is that these properties often
+      conflict. A highly faithful explanation of a deep network may be
+      mathematically complex and incomprehensible to a non-expert. A simple,
+      comprehensible explanation (like a linear approximation in LIME) may
+      sacrifice faithfulness because it cannot capture non-linear model
+      behaviour. There is an inherent tension between accuracy of the
+      explanation and its usability.
+
+  - id: q4
+    question: Who are the key stakeholders of XAI systems, and why do they require different types of explanations?
+    answer: >
+      XAI stakeholders include: ML developers and researchers, who need
+      technical explanations to debug and improve models; domain experts such
+      as doctors or lawyers, who need explanations that align with their
+      professional knowledge to verify model decisions; end users, who need
+      simple, actionable explanations they can understand without ML
+      knowledge; and regulators or auditors, who need explanations that
+      demonstrate legal compliance and fairness. Each group has different
+      levels of technical literacy, different decision-making needs, and
+      different accountability requirements. A heatmap satisfies a radiologist
+      but not a loan applicant; a feature importance score satisfies a
+      regulator but not a patient.
+
+  - id: q5
+    question: How does Grad-CAM generate a visual explanation, and what is the key theoretical assumption that makes it work?
+    answer: >
+      Grad-CAM computes the gradient of the target class score with respect
+      to the feature maps in the last convolutional layer. These gradients are
+      spatially averaged via Global Average Pooling to produce one importance
+      weight per feature map. A weighted sum of all feature maps is then
+      computed and passed through ReLU to retain only positively contributing
+      regions. The result is upsampled to the original image size to produce
+      a heatmap. The key assumption is that the last convolutional layer
+      retains spatial location information — unlike fully connected layers
+      which collapse spatial structure. This spatial preservation is what
+      allows the method to localise which regions of the image drove the
+      prediction.
+
+  - id: q6
+    question: Explain how LIME approximates the behaviour of a black-box model locally. What are the core steps and what does the output mean?
+    answer: >
+      LIME treats the model as a black box and probes it by generating
+      perturbed versions of the input. For images, the input is segmented into
+      superpixels, and random subsets are masked to create perturbed samples.
+      Each perturbed sample is passed through the black-box model to obtain a
+      prediction. Samples are weighted by their proximity to the original
+      input. A simple linear model is then fitted to predict the black-box
+      output from the binary presence/absence of each superpixel. The learned
+      weights indicate each region's contribution: positive weights support
+      the predicted class, negative weights work against it, and weights near
+      zero indicate irrelevance. The key output is a locally faithful linear
+      approximation of the model's behaviour near one specific input.
+
+  - id: q7
+    question: What are the two components of the SIDU method, what does each capture, and why is their combination more informative than either alone?
+    answer: >
+      SIDU computes Similarity Difference (SD) and Uniqueness (U) for each
+      feature activation mask. SD measures how much the model's prediction
+      drops when a region is masked — high SD means the region is important
+      to the prediction. U measures how different a masked prediction is from
+      all other masked predictions — high U means the region produces a
+      distinctively different output, making it uniquely informative. SD alone
+      can be high for large masks that cover most of the image regardless of
+      content. U alone can highlight noisy or irrelevant regions that happen
+      to produce unusual predictions. Their product ensures that only regions
+      that are both genuinely relevant and distinctively so receive high
+      importance scores, producing tighter and more reliable saliency maps.
+
+  - id: q8
+    question: What is a counterfactual explanation in XAI, and how does it differ conceptually from a saliency map?
+    answer: >
+      A counterfactual explanation answers the question of what would need to
+      change about the input to produce a different model output. For example,
+      "if your average glucose level were below 130, the stroke risk
+      prediction would change to non-stroke." A saliency map answers a
+      different question — it shows which parts of the existing input the
+      model focused on to produce the current prediction. Saliency maps are
+      diagnostic and descriptive; counterfactuals are prescriptive and
+      actionable. Counterfactuals are often more useful to end users because
+      they suggest concrete changes, while saliency maps are more useful to
+      developers for debugging model reasoning.
+
+  - id: q9
+    question: Describe the three frameworks for evaluating XAI methods. What does each measure and what are their respective limitations?
+    answer: >
+      Functionally-Grounded evaluation uses automated proxy measures without
+      human involvement, such as the Insertion and Deletion test. It is
+      scalable but may not reflect whether explanations are meaningful to
+      humans. Human-Grounded evaluation involves non-expert humans performing
+      simplified tasks based on explanations, testing general comprehensibility.
+      It captures human perception but may not reflect real-world deployment
+      conditions. Application-Grounded evaluation involves domain experts
+      assessing explanations within a real task, such as ophthalmologists
+      reviewing heatmaps on retinal scans. It is the most ecologically valid
+      but is expensive, slow, and difficult to scale. No single framework is
+      sufficient — the lecture concludes that evaluation should be
+      human-centric and holistic, combining multiple approaches.
+
+  - id: q10
+    question: What does the Insertion and Deletion test measure in XAI evaluation, and what does a high-quality explanation look like under this framework?
+    answer: >
+      The Insertion test starts from a blank image and progressively adds
+      pixels in order of their assigned importance, measuring how quickly the
+      model's class confidence rises. A good explanation causes confidence to
+      rise steeply with few pixels inserted, indicating the most important
+      pixels were correctly prioritised — higher AUC is better. The Deletion
+      test starts from the full image and progressively removes the most
+      salient pixels, measuring how quickly confidence drops. A good
+      explanation causes a rapid drop — lower AUC is better. Together they
+      measure faithfulness: whether the explanation reflects what the model
+      actually uses. A weakness is that this only measures fidelity to the
+      model, not whether the explanation makes human sense.
+
+  - id: q11
+    question: What is bias in machine learning, and what are the three main sources from which it can originate?
+    answer: >
+      Bias in machine learning refers to systematic unequal treatment or
+      unequal impact of a model's predictions on different groups of people.
+      It can originate from three main sources. Data collection bias occurs
+      when the training data does not represent all groups equally or reflects
+      existing societal prejudices — for example, historical hiring data that
+      underrepresents women in technical roles. Algorithmic bias occurs when
+      the modelling process itself introduces or amplifies disparities, for
+      example through the choice of objective function or regularisation.
+      Deployment bias occurs when a model is applied in a context different
+      from the one it was trained for, causing its predictions to
+      systematically disadvantage certain groups in practice.
+
+  - id: q12
+    question: What is "Fairness through Unawareness" and why is it considered an insufficient strategy for eliminating bias?
+    answer: >
+      Fairness through unawareness is the approach of removing protected
+      attributes such as race, sex, or religion from the model's input
+      features, on the assumption that a model which never sees these
+      attributes cannot discriminate based on them. It is insufficient because
+      other features in the data can act as proxies for protected attributes.
+      Postcode, occupation, and prior arrest history are all correlated with
+      race in many real-world datasets. A model trained on these features will
+      implicitly learn to use them as stand-ins for race, producing racially
+      disparate outcomes even without direct access to the protected attribute.
+      Removing the attribute from the input does not remove the information
+      from the data distribution.
+
+  - id: q13
+    question: What is error rate balance as a fairness criterion, and how does it differ from simply requiring equal overall accuracy across groups?
+    answer: >
+      Error rate balance requires that the false positive rate and/or false
+      negative rate be equal across demographic groups. This means the
+      probability of being incorrectly predicted as high-risk given that you
+      are actually low-risk should be the same regardless of group membership.
+      Equal overall accuracy across groups is a weaker requirement — a model
+      can achieve the same accuracy for two groups while still having very
+      different error compositions. For example, one group might suffer
+      disproportionately high false positives while another suffers high false
+      negatives, even if total accuracy is matched. In the COMPAS system,
+      Black defendants had a significantly higher false positive rate than
+      white defendants despite the system claiming comparable overall accuracy,
+      illustrating exactly this distinction.
+
+  - id: q14
+    question: How can XAI methods be used as tools for detecting and diagnosing model bias? Give a concrete example.
+    answer: >
+      XAI methods can make bias visible by revealing what features or regions
+      a model actually relies on, rather than what it should rely on. If a
+      saliency map consistently highlights irrelevant artefacts — such as
+      background colour, image metadata artefacts, or ruler markings in
+      medical images — rather than the object of interest, this signals that
+      the model has learned a spurious correlation. In the Pokémon vs. Digimon
+      case, a heatmap would reveal activation on the black background rather
+      than the character, directly exposing the data artefact. In a loan
+      approval model, LIME feature importance scores might reveal that
+      postcode — a proxy for ethnicity — is the dominant driver of rejections,
+      even though ethnicity itself was excluded. XAI thus serves as an
+      auditing layer that converts opaque discrimination into diagnosable and
+      correctable model behaviour.
+
+  - id: q15
+    question: Why does the transparency-accuracy trade-off exist in machine learning, and under what conditions might it be acceptable to sacrifice accuracy for interpretability?
+    answer: >
+      The trade-off exists because the modelling choices that enable high
+      accuracy — deep non-linear architectures with millions of parameters —
+      are precisely what makes models opaque. Simple interpretable models like
+      linear regression or shallow decision trees are transparent because
+      their decision rules are directly readable, but they cannot capture
+      the complex feature interactions needed for high performance on tasks
+      like image recognition or natural language understanding. Sacrificing
+      accuracy for interpretability may be acceptable in high-stakes domains
+      where accountability and auditability are legally or ethically required
+      — for example, in credit scoring (where loan issuers are legally
+      required to explain decisions), in medical diagnosis (where clinicians
+      need to verify reasoning), or in criminal justice (where discriminatory
+      models have severe consequences for individuals). In low-stakes
+      applications the trade-off may not be worth making.
+
+  - id: q16
+    question: What is the difference between model-specific and model-agnostic XAI methods, and what advantage does model-agnostic provide?
+    answer: >
+      Model-specific XAI methods exploit the internal structure of a
+      particular type of model to generate explanations. Grad-CAM is
+      model-specific — it requires access to the gradient signals and
+      convolutional feature maps of a CNN and cannot be applied to a random
+      forest or a transformer without modification. Model-agnostic methods
+      treat the model as a black box, interacting with it only through inputs
+      and outputs. LIME is model-agnostic — it can be applied to any
+      classifier regardless of architecture simply by querying it with
+      perturbed inputs. The advantage of model-agnostic methods is
+      flexibility and portability across architectures. The disadvantage is
+      that by ignoring internal structure, they may produce less faithful
+      explanations because they can only approximate the model's behaviour
+      from the outside rather than directly inspecting its reasoning.
+
+  - id: q17
+    question: What is the "correct answers ≠ intelligent" principle in the context of XAI, and what does it imply about how we should validate ML models?
+    answer: >
+      The principle states that a model producing correct predictions does not
+      necessarily mean it has learned the right reasoning process. It may be
+      exploiting shortcuts, artefacts, or spurious correlations in the
+      training data that happen to be predictive in that specific dataset but
+      will not generalise to new conditions. The Pokémon classifier is the
+      canonical example — correct predictions driven by background colour
+      rather than character appearance. The implication is that model
+      validation should go beyond held-out accuracy metrics and include
+      explanation-based auditing. We should ask not just whether the model
+      gets the right answers, but whether it gets them for the right reasons.
+      This is especially critical in domains where distribution shift is
+      likely or where the consequences of failure are severe.

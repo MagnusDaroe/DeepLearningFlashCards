@@ -1,0 +1,105 @@
+id: deep-learning-fundamentals
+
+title: Deep Learning Fundamentals
+
+questions:
+
+  - id: q1
+    question: What does representation learning mean in deep learning?
+    answer: >
+      Representation learning means that the model learns useful features directly from data instead of relying on manually designed features. In early layers, the model may learn simple patterns such as edges, while deeper layers combine these into more abstract concepts such as object parts or full objects.
+
+  - id: q2
+    question: What is the role of weights and biases in an artificial neuron?
+    answer: >
+      Weights control how strongly each input influences the neuron, while the bias shifts the neuron's activation threshold. Together they define the linear part of the neuron before the activation function is applied.
+
+  - id: q3
+    question: Why do neural networks need activation functions?
+    answer: >
+      Activation functions introduce nonlinearity. Without them, stacking many layers would still be equivalent to one linear transformation, meaning the network could not learn complex nonlinear relationships.
+
+  - id: q4
+    question: What is the difference between a fully connected neural network and a convolutional neural network?
+    answer: >
+      In a fully connected neural network, every neuron in one layer is connected to every neuron in the next layer. A convolutional neural network instead uses local filters that slide across the input, making it more efficient for images because it preserves spatial structure and shares weights across locations.
+
+  - id: q5
+    question: What is a feature map in a CNN?
+    answer: >
+      A feature map is the output produced by applying a convolutional filter to an input. It shows where in the image a certain learned feature, such as an edge or texture, activates strongly.
+
+  - id: q6
+    question: What is a receptive field in a CNN?
+    answer: >
+      A receptive field is the region of the original input that influences one activation in a feature map. Early layers have small receptive fields, while deeper layers have larger receptive fields because they combine information from previous layers.
+
+  - id: q7
+    question: Why does the receptive field grow in deeper convolutional layers?
+    answer: >
+      The receptive field grows because each layer combines neighboring outputs from the previous layer, and each of those previous outputs already summarizes a local region of the original input. With stacked 3x3 convolutions, a deeper activation depends on a larger area of the original image.
+
+  - id: q8
+    question: What is pooling used for in CNNs?
+    answer: >
+      Pooling reduces the spatial size of feature maps by aggregating local information, for example by taking the maximum value in a small region. This reduces computation, increases robustness to small shifts, and helps later layers see larger regions of the input.
+
+  - id: q9
+    question: What is the difference between training and inference?
+    answer: >
+      Training is when the model learns by computing a loss, backpropagating gradients, and updating weights. Inference is when the trained model is used to make predictions with fixed weights and no gradient-based updates.
+
+  - id: q10
+    question: What is backpropagation?
+    answer: >
+      Backpropagation is the algorithm used to compute gradients for all trainable weights in a neural network. It applies the chain rule backward from the loss through the network so each weight can be updated according to its contribution to the error.
+
+  - id: q11
+    question: Why is the chain rule important in neural networks?
+    answer: >
+      The chain rule is important because early weights affect the loss indirectly through later layers. It allows us to compute how a small change in an early weight changes later activations, the prediction, and ultimately the loss.
+
+  - id: q12
+    question: What is the difference between batch gradient descent, stochastic gradient descent, and mini-batch gradient descent?
+    answer: >
+      Batch gradient descent computes gradients using the full training set, giving accurate but slow updates. Stochastic gradient descent uses one random sample, giving fast but noisy updates. Mini-batch gradient descent uses a small batch of samples and is the practical compromise used in deep learning.
+
+  - id: q13
+    question: Why is the learning rate important?
+    answer: >
+      The learning rate controls the size of each weight update. If it is too small, training is very slow. If it is too large, optimization can overshoot the minimum, become unstable, or diverge.
+
+  - id: q14
+    question: What problem does Adam solve compared to basic SGD?
+    answer: >
+      Adam combines momentum with adaptive learning rates. Momentum helps smooth and accelerate updates in consistent directions, while adaptive learning rates adjust step sizes based on gradient history for each parameter.
+
+  - id: q15
+    question: What is the vanishing gradient problem?
+    answer: >
+      The vanishing gradient problem occurs when gradients become very small as they are backpropagated through many layers. Early layers then receive almost no learning signal and learn very slowly or not at all.
+
+  - id: q16
+    question: What is overfitting, and how can regularization help?
+    answer: >
+      Overfitting occurs when a model performs well on training data but poorly on unseen data because it has memorized training-specific patterns. Regularization methods such as dropout, weight decay, early stopping, batch normalization, and data augmentation help the model generalize better.
+
+  - id: q17
+    question: How does dropout reduce overfitting?
+    answer: >
+      Dropout randomly disables some neurons during training, forcing the network not to rely too strongly on specific neurons or feature combinations. This encourages more robust and generalizable representations.
+
+  - id: q18
+    question: What is the purpose of batch normalization?
+    answer: >
+      Batch normalization normalizes layer activations using mini-batch statistics, then applies learned scale and shift parameters. It stabilizes training, improves gradient flow, and can allow faster convergence.
+
+  - id: q19
+    question: Why do residual connections help train deep networks?
+    answer: >
+      Residual connections allow information and gradients to bypass layers through shortcut paths. This reduces optimization difficulties in very deep networks and helps mitigate vanishing gradients.
+
+  - id: q20
+    question: Why are graph neural networks needed for non-Euclidean data?
+    answer: >
+      Graph neural networks are needed because graph data does not have a regular grid structure like images. GNNs process nodes and edges by aggregating information from neighboring nodes, making them suitable for social networks, molecules, road networks, and other relational data.

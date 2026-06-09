@@ -1,0 +1,115 @@
+.card-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.card-topic-badge {
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+.card-inner {
+  width: 100%;
+  max-width: 560px;
+  /* height is set via inline style from JS measurements */
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.36s ease, height 0.36s ease;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-inner.flipping {
+  pointer-events: none;
+}
+
+.card-face {
+  /* left/right/top only — no bottom — so height grows with content */
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 28px 20px;
+  gap: 12px;
+  border: 1px solid rgba(108,99,255,0.18);
+}
+
+.card-back {
+  transform: rotateY(180deg);
+  background: var(--surface2);
+  border-color: rgba(255,101,132,0.22);
+}
+
+.card-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.card-text {
+  font-size: 1.1rem;
+  text-align: center;
+  line-height: 1.7;
+  color: var(--text);
+  width: 100%;
+}
+
+.card-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.card-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-ghost {
+  background: var(--surface2);
+  color: var(--text-muted);
+}

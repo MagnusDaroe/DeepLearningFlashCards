@@ -1,0 +1,41 @@
+.wheel-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.wheel-indicator {
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 26px solid #6c63ff;
+  filter: drop-shadow(0 2px 6px rgba(108,99,255,0.7));
+  z-index: 10;
+  position: relative;
+  margin-bottom: -10px;
+}
+
+.wheel-canvas {
+  border-radius: 50%;
+  box-shadow: 0 0 48px rgba(108,99,255,0.35), 0 4px 32px rgba(0,0,0,0.55);
+  cursor: pointer;
+  display: block;
+  /* Fill available space: height-driven on tall screens, width-driven on wide ones */
+  width: min(calc(100vh - 180px), 88vw, 820px);
+  height: min(calc(100vh - 180px), 88vw, 820px);
+  /* transform handled inline for the spin animation */
+}
+
+.wheel-canvas:focus-visible {
+  outline: 3px solid #6c63ff;
+  outline-offset: 4px;
+}
+
+.wheel-hint {
+  color: #9099c8;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+}
