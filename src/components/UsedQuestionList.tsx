@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import type { Topic, Question } from '../types'
 import './UsedQuestionList.css'
 
@@ -11,10 +12,14 @@ interface Props {
   usedIds: Set<string>
   onReopen: (topic: Topic, question: Question) => void
   onReset: () => void
+  onExport: () => void
+  onImport: (file: File) => void
   onClose: () => void
 }
 
-export default function UsedQuestionList({ topics, usedIds, onReopen, onReset, onClose }: Props) {
+export default function UsedQuestionList({ topics, usedIds, onReopen, onReset, onExport, onImport, onClose }: Props) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const entries: UsedEntry[] = []
   topics.forEach(t => {
     t.questions.forEach(q => {
@@ -22,11 +27,26 @@ export default function UsedQuestionList({ topics, usedIds, onReopen, onReset, o
     })
   })
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) onImport(file)
+    e.target.value = ''
+  }
+
   return (
     <div className="history-panel">
       <div className="history-header">
         <h2>Used Questions ({entries.length})</h2>
         <div className="history-header-actions">
+          <button className="btn btn-ghost btn-sm" onClick={onExport}>Export</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => fileInputRef.current?.click()}>Import</button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
           <button className="btn btn-danger" onClick={onReset}>Reset all</button>
           <button className="btn btn-ghost" onClick={onClose}>Close ✕</button>
         </div>

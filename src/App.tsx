@@ -65,6 +65,38 @@ export default function App() {
     setView('wheel')
   }
 
+  function handleExport() {
+    const blob = new Blob([JSON.stringify([...usedIds], null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'flashcard-progress.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImport(file: File) {
+    const reader = new FileReader()
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target?.result as string)
+        if (!Array.isArray(data) || !data.every(x => typeof x === 'string')) {
+          alert('Invalid progress file.')
+          return
+        }
+        setUsedIds(prev => {
+          const next = new Set(prev)
+          data.forEach((id: string) => next.add(id))
+          saveUsedIds(next)
+          return next
+        })
+      } catch {
+        alert('Could not parse progress file.')
+      }
+    }
+    reader.readAsText(file)
+  }
+
   const totalQuestions = topics.reduce((s, t) => s + t.questions.length, 0)
   const usedCount = usedIds.size
   const remaining = totalQuestions - usedCount
@@ -131,6 +163,8 @@ export default function App() {
             usedIds={usedIds}
             onReopen={handleReopen}
             onReset={handleReset}
+            onExport={handleExport}
+            onImport={handleImport}
             onClose={() => setView('wheel')}
           />
         )}
