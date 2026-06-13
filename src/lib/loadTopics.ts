@@ -1,12 +1,11 @@
 import yaml from 'js-yaml'
 import type { Topic, Question } from '../types'
 
-// Vite resolves this glob at build time — no index file needed.
-// Add a new .yaml file to src/topics/ and restart the dev server to pick it up.
-const topicModules = import.meta.glob('../topics/*.yaml', {
-  query: '?raw',
-  import: 'default',
-}) as Record<string, () => Promise<string>>
+// Vite resolves these globs at build time — add .yaml to src/ or src/topics/.
+const topicModules: Record<string, () => Promise<string>> = {
+  ...(import.meta.glob('../topics/*.yaml', { query: '?raw', import: 'default' }) as Record<string, () => Promise<string>>),
+  ...(import.meta.glob('../*.yaml', { query: '?raw', import: 'default' }) as Record<string, () => Promise<string>>),
+}
 
 // Visually distinct palette — cycles automatically when topics don't specify a color.
 const PALETTE = [
@@ -26,6 +25,7 @@ interface RawQuestion {
   id: unknown
   question: unknown
   answer: unknown
+  rarity?: unknown
 }
 
 interface RawTopic {
@@ -44,7 +44,12 @@ function validateQuestion(q: unknown, topicId: string, idx: number): Question {
   if (!isString(raw.id)) throw new Error(`Topic "${topicId}" question[${idx}] missing string "id"`)
   if (!isString(raw.question)) throw new Error(`Topic "${topicId}" question[${idx}] missing string "question"`)
   if (!isString(raw.answer)) throw new Error(`Topic "${topicId}" question[${idx}] missing string "answer"`)
-  return { id: `${topicId}::${raw.id}`, question: raw.question, answer: raw.answer }
+  return {
+    id: `${topicId}::${raw.id}`,
+    question: raw.question,
+    answer: raw.answer,
+    rarity: isString(raw.rarity) ? raw.rarity : 'Consumer Grade',
+  }
 }
 
 function validateTopic(raw: unknown, filename: string): Topic {

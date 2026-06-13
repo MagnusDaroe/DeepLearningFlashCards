@@ -1,0 +1,285 @@
+id: ssi-ho-kalman-obs-ctrl
+title: SSI, Ho-Kalman, Observability & Controllability
+questions:
+  - id: q1
+    rarity: Consumer Grade
+    question: State the rank condition that makes a discrete-time system (A, C) observable.
+    answer: >
+      The system is observable if and only if the observability matrix
+      [C; CA; CA²; ...; CA^(k-1)] has full column rank equal to n. This
+      means every initial state x₀ can be uniquely recovered from a
+      finite sequence of output measurements.
+
+  - id: q2
+    rarity: Consumer Grade
+    question: State the rank condition that makes a discrete-time system (A, B) controllable.
+    answer: >
+      The system is controllable if and only if the controllability matrix
+      [B, AB, A²B, ..., A^(k-1)B] has full row rank equal to n. This
+      guarantees that any desired state can be reached from any initial
+      state using a finite sequence of inputs.
+
+  - id: q3
+    rarity: Consumer Grade
+    question: What is a minimal realization of a state-space model, and what two properties must it satisfy?
+    answer: >
+      A minimal realization describes the system with the fewest possible
+      states, equal to the order of the underlying differential equation.
+      It must be both observable and controllable simultaneously.
+
+  - id: q4
+    rarity: Consumer Grade
+    question: What does the impulse response sequence y_k look like for k > 0 in the Ho-Kalman setting, and what does this reveal about the system?
+    answer: >
+      For k > 0, the impulse response is y_k = CA^(k-1)B. Each sample
+      is a so-called Markov parameter that directly encodes the combined
+      influence of C, A, and B, which is why the block Hankel matrix
+      built from these samples can be factored into the observability
+      and controllability matrices.
+
+  - id: q5
+    rarity: Consumer Grade
+    question: What are the two tuning parameters of the Ho-Kalman algorithm, and what role does each play?
+    answer: >
+      The model order n determines where to cut the SVD, retaining only
+      the n dominant singular values. The number of time lags q sets the
+      size of the block Hankel matrix and must exceed n so that the
+      observability matrix is tall enough to be full column rank.
+
+  - id: q6
+    rarity: Consumer Grade
+    question: In the Ho-Kalman algorithm, how is C extracted from the observability matrix, and how is B extracted from the controllability matrix?
+    answer: >
+      C is read off as the first r rows of the estimated observability
+      matrix O, since O stacks C, CA, CA², etc. from top to bottom.
+      B is read off as the first m columns of the estimated controllability
+      matrix, since it stacks B, AB, A²B, etc. from left to right.
+
+  - id: q7
+    rarity: Industrial Grade
+    question: In the Ho-Kalman exercise (Lecture 1, slide 53), an impulse is applied at the 4th DOF and accelerations are measured at all 6 DOFs. How does this setup fix the dimensions of the identified B and D matrices?
+    answer: >
+      There is a single input, so m = 1 and B is a column vector of
+      length n. There are six acceleration outputs, so r = 6 and D is
+      a 6×1 vector. D is recovered directly from y₀, the instantaneous
+      output at the moment of the impulse, because with zero initial
+      state y₀ = Du₀ = D·1 = D.
+
+  - id: q8
+    rarity: Industrial Grade
+    question: How is the system matrix A recovered from the observability matrix in the Ho-Kalman algorithm, and why does this work conceptually?
+    answer: >
+      The observability matrix O is split into two overlapping sub-matrices:
+      O₁ (all rows except the first block) and O₂ (all rows except the
+      last block). Because O₂·A = O₁ holds exactly by construction, A is
+      obtained by solving this linear system in the least-squares sense.
+      It works because consecutive block rows of O differ by exactly one
+      multiplication by A.
+
+  - id: q9
+    rarity: Industrial Grade
+    question: What factorization property of the Hankel matrix H underpins the entire Ho-Kalman algorithm, and what rank conditions on q and N are needed for it to hold?
+    answer: >
+      H factors as H = O·C, the product of the observability matrix O and
+      the controllability matrix C. For O to be full column rank (tall),
+      q + 1 must exceed n. For C to be full row rank (wide), N - q - 1
+      must exceed n. Both conditions must hold simultaneously, linking the
+      choice of q and the data length N to the assumed model order n.
+
+  - id: q10
+    rarity: Industrial Grade
+    question: In the covariance-driven input-output SSI (IOcov), what is the purpose of projecting Y⁺ onto the orthogonal complement of U⁺, and what term does this eliminate?
+    answer: >
+      The projection removes the deterministic contribution of the future
+      inputs U⁺ from the output equation. Because U⁺ projected onto its
+      own orthogonal complement is zero, the term H_d·U⁺ vanishes entirely,
+      leaving only terms driven by the state sequence and noise, from which
+      the observability matrix can be identified.
+
+  - id: q11
+    rarity: Industrial Grade
+    question: Why is the direct computation of the IOcov projection computationally problematic, and what decomposition replaces it?
+    answer: >
+      The direct formula requires forming and inverting a pseudoinverse of
+      a large matrix involving U⁺, which can be numerically infeasible for
+      long data records. Instead, an LQ decomposition of the stacked data
+      matrix [U⁺; Y⁻; Y⁺] is used. The projection collapses to a product
+      of two small triangular blocks, L₃₂·L₂₂ᵀ, making the computation
+      cheap and numerically stable regardless of how many samples N there are.
+
+  - id: q12
+    rarity: Industrial Grade
+    question: >
+      In the N4SID algorithm's LQ-based implementation, the stacked matrix
+      [U⁺; G⁻; Y⁺] is decomposed. Which entry of the L factor matrix delivers
+      the oblique projection, and what is the role of G⁻ compared with the
+      IOcov formulation?
+    answer: >
+      The oblique projection is given by L₃₂·L₂₂⁻¹·[L₂₁ L₂₂]·[Q₁; Q₂].
+      The key difference from IOcov is the middle block row: G⁻ = [U⁻; Y⁻]
+      stacks past inputs together with past outputs, whereas IOcov uses only Y⁻.
+      Including past inputs allows the algorithm to use the correlation between
+      past inputs and the current state, enabling direct access to the state
+      sequence X̂⁺ rather than only to Ô·Ĉ.
+
+  - id: q13
+    rarity: Industrial Grade
+    question: >
+      In recursive least-squares, the update equation can be written as
+      Θ̂_{N+1} = Θ̂_N + R_{N+1}⁻¹·φ_{N+1}·ε_{N+1}ᵀ. Identify each factor
+      and explain conceptually why the update is scaled by R_{N+1}⁻¹.
+    answer: >
+      φ_{N+1} is the new regressor vector, ε_{N+1} = y_{N+1} − Θ̂_Nᵀ·φ_{N+1}
+      is the innovation (prediction error on the new sample), and R_{N+1}⁻¹ is
+      the inverse of the accumulated information matrix. The role of R_{N+1}⁻¹
+      is to scale the correction by the uncertainty remaining in each direction
+      of parameter space: directions already well-excited by past data have
+      large R entries and hence receive a small correction, while poorly excited
+      directions receive a larger correction.
+
+  - id: q14
+    rarity: Mil-Spec
+    question: Why does the N4SID (data-driven input-output) SSI algorithm use an oblique projection rather than an orthogonal one, and what does the oblique projection isolate?
+    answer: >
+      An orthogonal projection of Y⁺ onto the past data would not cleanly
+      separate future input contributions from state information. The oblique
+      projection projects Y⁺ along the direction of U⁺ and onto the row
+      space of the past data G⁻ = [U⁻; Y⁻]. This simultaneously cancels
+      the future input U⁺ and uses the correlated past as an instrument,
+      isolating the product O·X̂⁺, which is what is needed to extract the
+      observability matrix via SVD.
+
+  - id: q15
+    rarity: Mil-Spec
+    question: Intuitively, why does multiplying the IOcov projection by Y⁻ᵀ remove the noise terms W⁺ and V⁺ that survive the orthogonal projection step?
+    answer: >
+      Process noise W⁺ and measurement noise V⁺ are zero-mean and white,
+      so they are uncorrelated with the past outputs Y⁻ at large lag. As the
+      number of samples N grows, the sample cross-products W⁺·Y⁻ᵀ and
+      V⁺·Y⁻ᵀ both converge to zero. The state-driven term survives because
+      past outputs Y⁻ are genuinely correlated with the current state through
+      the system dynamics, so O·Ĉ is what remains in the limit.
+
+  - id: q16
+    rarity: Mil-Spec
+    question: In the efficient LQ-based output-only SSI (UPC), why is it sufficient to apply the SVD only to the small block L₂₁ rather than to the full projected Hankel matrix?
+    answer: >
+      Using the orthonormality properties of the Q factors from the LQ
+      decomposition, the full projection Ĥ_UPC simplifies algebraically
+      to L₂₁·Q₁. Since Q₁ has orthonormal rows, multiplying by Q₁ only
+      rotates the column space without changing singular values. Therefore
+      the singular structure of Ĥ_UPC is identical to that of L₂₁ alone,
+      and the observability matrix can be extracted directly from the SVD
+      of the much smaller matrix L₂₁.
+
+  - id: q17
+    rarity: Restricted
+    question: >
+      In the IOcov algorithm the noise terms vanish asymptotically, but for
+      finite N they do not. What practical consequence does this have for the
+      rank of the estimated Hankel matrix, and how does the SVD truncation
+      address it?
+    answer: >
+      With finite data, estimation noise inflates all singular values, so the
+      Hankel matrix appears full rank even when the true system has order n
+      and the true matrix should have rank n. The SVD truncation at order n
+      discards the small singular values attributed to noise, projecting onto
+      the dominant n-dimensional subspace. This acts as a denoising step that
+      enforces the correct rank and yields a well-conditioned observability
+      matrix estimate.
+
+  - id: q18
+    rarity: Restricted
+    question: >
+      In the IOcov LQ implementation it can be shown that Ĥ_IOcov = L₃₂·L₂₂ᵀ.
+      Sketch why this compact expression is equivalent to the full projection
+      formula (Y⁺/U⁺⊥)·Y⁻ᵀ, referencing the orthonormality properties of the
+      Q factors.
+    answer: >
+      From the LQ decomposition, U⁺ = L₁₁·Q₁, Y⁻ = L₂₁·Q₁ + L₂₂·Q₂, and
+      Y⁺ = L₃₁·Q₁ + L₃₂·Q₂ + L₃₃·Q₃. The orthogonal projection of Y⁺ onto
+      the complement of U⁺ zeros out the component along Q₁, leaving only the
+      L₃₂·Q₂ term. Right-multiplying by Y⁻ᵀ and using Q₂·Q₂ᵀ = I and
+      Q₂·Q₁ᵀ = 0 collapses the expression to L₃₂·L₂₂ᵀ, confirming the
+      equivalence without ever forming or inverting large matrices explicitly.
+
+  - id: q19
+    rarity: Classified
+    question: >
+      In the input-output SSI context, the data matrix equation is
+      Y⁺ = Ô·X⁺ + H_d·U⁺ + H_q·W⁺ + V⁺. Explain why neither an orthogonal
+      projection alone nor right-multiplication by Y⁻ᵀ alone is sufficient to
+      isolate Ô, and why combining both operations in that order achieves what
+      neither alone can.
+    answer: >
+      An orthogonal projection onto the complement of U⁺ removes H_d·U⁺ exactly
+      but leaves noise terms as non-zero residuals that contaminate any SVD.
+      Right-multiplication by Y⁻ᵀ alone does not remove H_d·U⁺ because U⁺ is
+      correlated with Y⁻ through the system dynamics, so U⁺·Y⁻ᵀ ≠ 0 in general.
+      Combining both in order resolves this: the projection kills H_d·U⁺ exactly,
+      and thereafter the residual noise terms are uncorrelated with Y⁻ because
+      the noises are white and zero-mean, so their cross-products vanish
+      asymptotically. Only Ô·(X⁺/U⁺⊥)·Y⁻ᵀ = Ô·Ĉ survives, enabling consistent
+      identification of the observability matrix.
+
+  - id: q20
+    rarity: Covert
+    question: >
+      The IOcov and N4SID algorithms both produce estimates of A and C but
+      not directly of Q, R, S. Why is a separate residual-based step needed
+      to estimate the noise covariances, and what data are used in that step?
+    answer: >
+      The SVD step identifies the system matrices from the signal subspace
+      but treats noise implicitly as what is discarded. Q, R, S describe the
+      statistical structure of that discarded noise and cannot be read from
+      the observability matrix. A separate step computes residuals ρ_w and
+      ρ_v by plugging the identified matrices and the estimated state sequences
+      X̂⁺ and X̂₊⁺ back into the state-space equations and measuring the
+      mismatch. The outer product of these residuals then approximates the
+      joint noise covariance matrix [Q S; Sᵀ R], which is required for
+      downstream Kalman filter design.
+
+  - id: q21
+    rarity: Covert
+    question: >
+      Both the IOcov and N4SID algorithms share the same SVD-based procedure
+      for extracting A and C once their respective data matrices are formed,
+      yet they are derived from fundamentally different projection principles.
+      What is the key conceptual difference between the two projections, and
+      under what practical conditions would you prefer one over the other?
+    answer: >
+      IOcov uses an orthogonal projection of Y⁺ onto the orthogonal complement
+      of U⁺, followed by multiplication by Y⁻ᵀ to build a covariance-like
+      quantity. It is consistent as N → ∞ but discards information contained
+      in the cross-correlation between future inputs and past outputs.
+      N4SID uses an oblique projection that retains this cross-correlation by
+      projecting along U⁺ onto the joint past G⁻ = [U⁻; Y⁻], giving direct
+      access to the state sequence X̂⁺. In practice, N4SID is preferred when
+      state estimates are also needed (e.g. for noise covariance recovery),
+      while IOcov is preferred when only A and C are required and robustness
+      to input non-persistence is a concern, since the orthogonal projection
+      is less sensitive to near-singular input conditions.
+
+  - id: q22
+    rarity: Exceedingly Rare
+    question: >
+      The recursive least-squares predictor and the output-only UPC subspace
+      algorithm both process output data sequentially, yet they serve fundamentally
+      different roles. Explain precisely what each algorithm estimates, why the
+      UPC result cannot be obtained simply by applying RLS to the raw output
+      sequence, and what structural property of the Hankel projection is the
+      true engine of subspace identification that RLS alone cannot replicate.
+    answer: >
+      RLS fits a parameter vector Θ minimising a sum of squared prediction errors
+      for a single linear regression model; it produces a consistent estimate of
+      Θ but has no concept of latent state or system order. UPC instead identifies
+      the observability matrix Ô of a latent state-space system by exploiting the
+      rank structure of the projected Hankel matrix Ĥ_UPC ≈ Ô·X̂⁺. The key
+      structural property RLS cannot replicate is the factorisation H = O·C:
+      because the Hankel matrix is the product of the observability and
+      controllability matrices, its rank equals the system order n regardless of
+      how many lags are used, and SVD truncation at n extracts Ô and the state
+      sequence simultaneously. RLS applied to raw output would estimate a
+      transfer function in a chosen basis, not a minimal state-space realisation,
+      and would provide no mechanism to recover A from the shift structure
+      O₂·A = O₁ that is the conceptual core of subspace identification.

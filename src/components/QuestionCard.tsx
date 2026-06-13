@@ -65,7 +65,7 @@ export default function QuestionCard({ topic, question, onBack, onNext, hasNext 
 
       <div className="card-actions">
         <button className="btn btn-ghost" onClick={onBack}>
-          ← Back to wheel
+          ← Back to roulette
         </button>
         {hasNext && (
           <button className="btn btn-primary" onClick={onNext}>

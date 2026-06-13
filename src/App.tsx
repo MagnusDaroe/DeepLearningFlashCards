@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { loadTopics } from './lib/loadTopics'
 import { loadUsedIds, saveUsedIds, clearUsedIds } from './lib/questionStore'
-import WheelPicker from './components/WheelPicker'
+import RouletteReel from './components/RouletteReel'
 import QuestionCard from './components/QuestionCard'
 import UsedQuestionList from './components/UsedQuestionList'
 import type { Topic, Question, AppView } from './types'
@@ -12,9 +12,10 @@ export default function App() {
   const [loadErrors, setLoadErrors] = useState<{ file: string; message: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [usedIds, setUsedIds] = useState<Set<string>>(new Set())
-  const [view, setView] = useState<AppView>('wheel')
+  const [view, setView] = useState<AppView>('roulette')
   const [activeTopic, setActiveTopic] = useState<Topic | null>(null)
   const [activeQuestion, setActiveQuestion] = useState<Question | null>(null)
+  const [autoSpin, setAutoSpin] = useState(false)
 
   useEffect(() => {
     loadTopics().then(({ topics: t, errors }) => {
@@ -34,13 +35,10 @@ export default function App() {
     })
   }
 
-  function handleTopicSpin(topic: Topic) {
-    const available = topic.questions.filter(q => !usedIds.has(q.id))
-    if (available.length === 0) return // all used — stay on wheel
-    const q = available[Math.floor(Math.random() * available.length)]
-    markUsed(q.id)
+  function handleQuestionSelect(topic: Topic, question: Question) {
+    markUsed(question.id)
     setActiveTopic(topic)
-    setActiveQuestion(q)
+    setActiveQuestion(question)
     setView('card')
   }
 
@@ -50,19 +48,20 @@ export default function App() {
     setView('card')
   }
 
+  function handleBack() {
+    setAutoSpin(false)
+    setView('roulette')
+  }
+
   function handleNext() {
-    if (!activeTopic) return
-    const available = activeTopic.questions.filter(q => !usedIds.has(q.id))
-    if (available.length === 0) return
-    const q = available[Math.floor(Math.random() * available.length)]
-    markUsed(q.id)
-    setActiveQuestion(q)
+    setAutoSpin(true)
+    setView('roulette')
   }
 
   function handleReset() {
     clearUsedIds()
     setUsedIds(new Set())
-    setView('wheel')
+    setView('roulette')
   }
 
   function handleExport() {
@@ -113,14 +112,14 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">Question Wheel</h1>
+        <h1 className="app-title">Question Roulette</h1>
         <div className="app-stats">
           <span>{remaining} remaining</span>
           <span className="divider">·</span>
           <span>{usedCount} used</span>
           <button
             className="btn btn-ghost btn-sm history-btn"
-            onClick={() => setView(v => v === 'history' ? 'wheel' : 'history')}
+            onClick={() => setView(v => v === 'history' ? 'roulette' : 'history')}
           >
             History
           </button>
@@ -138,22 +137,27 @@ export default function App() {
       {topics.length === 0 && !loading && loadErrors.length === 0 && (
         <div className="empty-state">
           <p>No topic files found.</p>
-          <p>Add YAML files to <code>public/topics/</code> and list them in <code>public/topics/index.json</code>.</p>
+          <p>Add YAML files to <code>src/topics/</code> or <code>src/</code> and restart the dev server.</p>
         </div>
       )}
 
       <main className="app-main">
-        {view === 'wheel' && topics.length > 0 && (
-          <WheelPicker topics={topics} usedIds={usedIds} onSelect={handleTopicSpin} />
+        {view === 'roulette' && topics.length > 0 && (
+          <RouletteReel
+            topics={topics}
+            usedIds={usedIds}
+            onSelect={handleQuestionSelect}
+            autoSpin={autoSpin}
+          />
         )}
 
         {view === 'card' && activeTopic && activeQuestion && (
           <QuestionCard
             topic={activeTopic}
             question={activeQuestion}
-            onBack={() => setView('wheel')}
+            onBack={handleBack}
             onNext={handleNext}
-            hasNext={activeTopic.questions.some(q => !usedIds.has(q.id))}
+            hasNext={topics.some(t => t.questions.some(q => !usedIds.has(q.id)))}
           />
         )}
 
@@ -165,7 +169,7 @@ export default function App() {
             onReset={handleReset}
             onExport={handleExport}
             onImport={handleImport}
-            onClose={() => setView('wheel')}
+            onClose={() => setView('roulette')}
           />
         )}
       </main>

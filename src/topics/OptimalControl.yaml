@@ -1,0 +1,96 @@
+id: optimal-control
+title: Optimal Control
+questions:
+  - id: q1
+    rarity: Consumer Grade
+    question: What is the Bellman equation in the infinite-horizon setting, and what does it express about the optimal value function?
+    answer: The Bellman equation states that J*(x) = min_{u in U} { L(x,u) + J*(f(x,u)) }. It expresses the principle of optimality — the total cost from any state decomposes into the immediate stage cost plus the optimal cost-to-go from the next state.
+  - id: q2
+    rarity: Consumer Grade
+    question: In single shooting, what is the decision variable and how are the states obtained?
+    answer: The decision variable is the stacked input sequence U = [u(0), ..., u(H-1)]^T. States are not optimised directly; they are obtained by forward simulation of the dynamics from x0, eliminating them from the optimisation.
+  - id: q3
+    rarity: Consumer Grade
+    question: In multiple shooting, what are the decision variables and how are the dynamics enforced?
+    answer: Both the input sequence U and the intermediate states X = [x(1), ..., x(H)]^T are decision variables. The dynamics are enforced as explicit equality constraints x(k+1) = f(x(k), u(k)), rather than being satisfied implicitly through simulation.
+  - id: q4
+    rarity: Industrial Grade
+    question: Why does an LQR problem with linear dynamics and quadratic costs reduce to a QP under single shooting, whereas nonlinear dynamics yield an NLP?
+    answer: For linear dynamics, the states are affine functions of U via X = A*x0 + B*U, so substituting into the quadratic cost gives an objective that is quadratic in U — a QP. For nonlinear dynamics, the state trajectory is a nested composition of f, which is generally nonlinear in U, so the resulting problem is an NLP.
+  - id: q5
+    rarity: Industrial Grade
+    question: What structural property of the Jacobian in multiple shooting makes it preferable to single shooting for large-horizon nonlinear problems?
+    answer: In multiple shooting the constraint Jacobian is sparse and banded, because each defect constraint depends only on the local variables x(k) and u(k). Single shooting produces dense Jacobians because every output depends on the full input history through nested simulation.
+  - id: q6
+    rarity: Mil-Spec
+    question: What failure mode can arise in continuous-time single shooting when path constraints are only enforced at discretisation nodes?
+    answer: Constraint violations can occur between nodes. Because h(x(t), u(t)) <= 0 is checked only at grid points t_k, the continuous trajectory may leave the feasible region within an interval without the optimiser detecting it. This can only be addressed by adding intermediate evaluation points, refining the grid, or using collocation methods.
+  - id: q7
+    rarity: Restricted
+    question: In what sense does dynamic programming provide a richer solution than batch optimisation, and under what circumstance does this richness become computationally intractable?
+    answer: Dynamic programming yields an optimal policy pi*(x) valid for any initial condition — a full feedback law over the state space. Batch optimisation produces only an open-loop sequence U* for a specific x0. The richness of DP becomes intractable when n_x is large, because numerically solving the Bellman recursion requires discretising the state space, and grid size grows exponentially with n_x — the curse of dimensionality.
+  - id: q8
+    rarity: Consumer Grade
+    question: What is the finite-horizon Bellman recursion, and in which direction does it proceed?
+    answer: The finite-horizon Bellman recursion initialises at the terminal cost J*_{H->H}(x) = L_H(x) and steps backward in time via J*_{(j-1)->H}(x) = min_{u in U} { L_{j-1}(x,u) + J*_{j->H}(f(x,u)) } for j = H, H-1, ..., 1. It proceeds backward from the terminal stage to the initial stage.
+  - id: q9
+    rarity: Consumer Grade
+    question: What is the key idea behind lifting in optimal control, and why does it increase the dimension of the optimisation variable?
+    answer: Lifting converts a sequential optimal control problem into a standard finite-dimensional optimisation problem by stacking inputs and possibly states into a single vector xi. The dimension increases because variables that were implicitly determined by the dynamics are either eliminated through simulation (single shooting) or retained explicitly (multiple shooting), both producing a high-dimensional xi.
+  - id: q10
+    rarity: Industrial Grade
+    question: How are mixed state-input constraints of the form M_x x(k) + M_u u(k) + g <= 0 converted into a constraint purely on U in single shooting?
+    answer: Using X = A*x0 + B*U, the stacked constraint M_x X + M_u U + G_bar <= 0 becomes (M_x B + M_u) U + M_x A x0 + G_bar <= 0. Defining M = M_x B + M_u and G = M_x A x0 + G_bar gives the compact linear form M U + G <= 0, a constraint in U alone.
+  - id: q11
+    rarity: Industrial Grade
+    question: Why does the Hessian H = R + B^T Q B in the unconstrained LQR QP remain positive definite whenever R_k are positive definite and Q_k are positive semidefinite?
+    answer: R is block-diagonal with positive definite blocks R_k, so R > 0. B^T Q B is positive semidefinite since Q >= 0. Their sum H = R + B^T Q B inherits positive definiteness from R, guaranteeing H > 0. This makes the QP strictly convex with a unique minimiser U* = -1/2 H^{-1} G.
+  - id: q12
+    rarity: Industrial Grade
+    question: What practical disadvantage does single shooting have when the horizon H is long, even for nonlinear dynamics that are well-behaved locally?
+    answer: As H grows, the state at time k is a k-fold nested composition of f, making the objective increasingly nonlinear and ill-conditioned in U. Sensitivities of late states to early inputs can grow or decay exponentially, degrading NLP solver convergence and making gradient computation unreliable.
+  - id: q13
+    rarity: Mil-Spec
+    question: In continuous-time single shooting with a zero-order hold parameterisation, under what condition does the discretised model become exact, and why?
+    answer: The discretised model is exact when the continuous-time dynamics are linear. For piecewise-constant inputs on [t_k, t_{k+1}), the linear ODE solution can be computed in closed form via the matrix exponential, yielding x(k+1) = A_d x(k) + B_d u(k) with no approximation error. For nonlinear dynamics the integral has no closed form and numerical integration introduces discretisation error.
+  - id: q14
+    rarity: Classified
+    question: Both single shooting and multiple shooting find the same optimal solution in exact arithmetic. Identify one reason this equivalence can break down in practice even when both algorithms converge.
+    answer: For nonconvex problems with multiple local optima, the two formulations may converge to different local solutions depending on their conditioning and initialisation. Single shooting can also suffer from exponentially growing or vanishing sensitivity chains along the horizon, causing the solver to stall or converge to a spurious point, while multiple shooting — using only single-step sensitivities — may find a better local optimum from the same starting guess.
+  - id: q15
+    rarity: Covert
+    question: Both dynamic programming and multiple shooting solve the same finite-horizon optimal control problem yet produce fundamentally different computational objects. Explain what each computes, why multiple shooting scales better with state dimension, and why DP can be preferable when many initial conditions must be solved.
+    answer: Dynamic programming computes the value function J*(x) and policy pi*(x) for all x by backward recursion over a discretised state space, then reads off the trajectory for any x0 at negligible extra cost. Multiple shooting computes U* for a single given x0 by solving a sparse NLP whose size grows linearly in H*n_x and H*n_u. DP's state-space discretisation grows exponentially with n_x, making it intractable for high-dimensional systems. However, once J* is computed, evaluating it at many initial conditions is cheap. Multiple shooting must re-solve the full NLP for each new x0, so it is preferred when n_x is large but only a few initial conditions are needed — the typical setting in MPC.
+  - id: q16
+    rarity: Consumer Grade
+    question: What is the receding horizon mechanism in MPC, and why does it constitute feedback even though each individual solve produces an open-loop plan?
+    answer: At each time step k, MPC solves a finite-horizon OCP from the current state x(k), applies only the first input u*(k|k), then discards the rest of the plan. At time k+1 the OCP is re-solved from the newly measured state. Because each solve incorporates fresh state information, disturbances and model errors are corrected at every step — the repeated re-optimisation closes the loop, even though the plan itself is open-loop between solves.
+  - id: q17
+    rarity: Consumer Grade
+    question: What is the control horizon Hu in MPC, and how does it differ from the prediction horizon H?
+    answer: The prediction horizon H is the total number of steps over which the OCP simulates the future trajectory. The control horizon Hu <= H is the number of steps over which inputs are freely optimised. Inputs beyond Hu are fixed by a simple rule such as holding the last optimised input constant or applying a pre-specified feedback gain. Using Hu < H reduces the number of decision variables and therefore the cost of each online solve.
+  - id: q18
+    rarity: Industrial Grade
+    question: Under what conditions does the first input produced by a finite-horizon MPC solve exactly match the infinite-horizon LQR action, and what role does the terminal cost play?
+    answer: For unconstrained linear dynamics with quadratic stage costs, if the MPC terminal cost is set to the infinite-horizon cost-to-go — the solution of the algebraic Riccati equation — then the finite-horizon problem encodes the full tail of the infinite-horizon problem. The first optimal input therefore matches the LQR gain u*(k) = -K x(k) exactly. Without the correct terminal cost the finite-horizon solution is generally only an approximation to the infinite-horizon optimum.
+  - id: q19
+    rarity: Industrial Grade
+    question: Why is recursive feasibility not automatically guaranteed in MPC, and what is one consequence of losing feasibility online?
+    answer: Recursive feasibility requires that if the OCP is feasible at time k, the shifted problem at k+1 is also feasible under the MPC control law. This is not automatic because disturbances can push the true state away from the predicted trajectory, constraints may tighten or change online, and model mismatch accumulates. If feasibility is lost, the optimiser has no admissible solution and the controller fails — it cannot return a control input.
+  - id: q20
+    rarity: Mil-Spec
+    question: Why are input constraints typically kept hard in soft-constraint MPC formulations, while state constraints are softened via slack variables?
+    answer: Input constraints usually reflect physical actuator limits — a valve cannot open beyond its maximum, a motor cannot exceed its torque bound. Allowing even a small violation of these limits is either physically impossible or immediately damaging, so softening them is meaningless or unsafe. State constraints, by contrast, often represent operational preferences or safety margins that can tolerate controlled, penalised exceedance; softening them preserves feasibility of the QP/NLP while discouraging violation through a large penalty weight.
+  - id: q21
+    rarity: Mil-Spec
+    question: In the LQG setting, what does the separation principle assert, and why does it simplify the joint design of estimation and control?
+    answer: The separation principle states that the optimal estimator (Kalman filter) and the optimal controller (LQR) can be designed independently and then connected in series without loss of optimality. This holds because, for linear-Gaussian systems with quadratic costs, the optimal policy depends on the state only through its conditional mean, and the estimation error covariance evolves independently of the control inputs. The designer therefore solves two decoupled problems — a Riccati recursion for the LQR gains and a Kalman filter recursion for the state estimates — rather than a joint optimisation over policies.
+  - id: q22
+    rarity: Restricted
+    question: When certainty-equivalence MPC is applied to a nonlinear system with a nonlinear observer, in what two ways does the guarantee offered by LQG break down?
+    answer: >
+      First, the separation principle no longer holds exactly: for nonlinear systems the optimal policy generally depends on the full posterior distribution of the state, not just its mean, so treating the estimate as the true state discards information about estimation uncertainty that should influence the control input. Second, the estimation error covariance is no longer independent of the control inputs under nonlinear dynamics, so the estimator and controller interact in ways that cannot be captured by independent designs. The heuristic approximation may work well in practice but offers no optimality or stability certificates analogous to those available in the LQG case.
+  - id: q23
+    rarity: Exceedingly Rare
+    question: MPC, LQG, and dynamic programming all address optimal control yet make fundamentally different trade-offs between online computation, feedback richness, and robustness to uncertainty. Explain how each handles the tension between having a policy valid for all states versus computational tractability, and identify the regime in which each approach is most appropriate.
+    answer: Dynamic programming resolves the tension by pre-computing the value function and policy over the entire state space offline; the resulting feedback law is globally optimal and handles any initial condition at negligible online cost, but the offline computation scales exponentially with state dimension, making DP practical only for low-dimensional systems. LQG resolves it analytically for linear-Gaussian problems — the separation principle yields a closed-form stationary feedback law (LQR gain plus Kalman filter) that is globally optimal with no online optimisation at all; it is ideal when the system is linear, noise is Gaussian, and constraints are absent. MPC resolves it by restricting the policy search to a finite horizon solved online from the current state; it handles nonlinear dynamics, hard constraints, and changing objectives naturally, but must re-solve an OCP at every time step and produces only a locally valid open-loop plan rather than a global feedback law. MPC is therefore most appropriate when the state dimension is too large for DP, the dynamics or constraints are too nonlinear or complex for LQG, and sufficient computation is available online — the typical setting in industrial process control, autonomous vehicles, and robotics.

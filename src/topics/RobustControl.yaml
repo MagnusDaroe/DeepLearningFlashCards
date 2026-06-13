@@ -1,0 +1,119 @@
+id: robust-control
+title: Robust Control
+questions:
+  - id: q1
+    rarity: Consumer Grade
+    question: What is the purpose of the generalized plant P in the robust control configuration?
+    answer: The generalized plant P collects all known system components — the nominal plant, performance weights, and uncertainty weights — into a single block, so that the control design problem can be expressed as minimizing the H∞ norm of the closed-loop transfer matrix from exogenous inputs w to performance outputs z.
+
+  - id: q2
+    rarity: Consumer Grade
+    question: What does it mean to "pull out the deltas" when setting up an N∆-structure?
+    answer: It means rearranging the uncertain closed-loop system so that all uncertainty blocks ∆ are separated from the known nominal dynamics and collected into a single block-diagonal perturbation matrix, leaving the remaining deterministic part as the transfer matrix N. This standard form makes robustness analysis tractable.
+
+  - id: q3
+    rarity: Consumer Grade
+    question: In the N∆-structure, what is the transfer matrix N and how is it obtained from the generalized plant P and controller K?
+    answer: N is the closed-loop transfer matrix from exogenous inputs w to performance outputs z, obtained by closing the loop around the generalized plant P with controller K via the lower linear fractional transformation N = Fl(P, K) = P11 + P12 K(I − P22 K)⁻¹ P21.
+
+  - id: q4
+    rarity: Consumer Grade
+    question: Why must the uncertainty block ∆ be normalized so that its H∞ norm is at most 1?
+    answer: Normalizing ∆ so that ‖∆‖∞ ≤ 1 moves all frequency-dependent magnitude information into the weighting functions inside N. This allows robustness conditions to be stated as simple norm bounds on N, making analysis and design problems well-posed and comparable across different uncertainty sources.
+
+  - id: q5
+    rarity: Industrial Grade
+    question: What is nominal stability in the context of the N∆-structure, and which part of N must be stable for it to hold?
+    answer: Nominal stability means the closed-loop system is stable when ∆ = 0. For this to hold, the entire transfer matrix N — not just the performance sub-block N22 — must be internally stable, because N11 drives the feedback loop with ∆ and any instability there would propagate when uncertainty is reintroduced.
+
+  - id: q6
+    rarity: Industrial Grade
+    question: What is the difference between nominal performance and robust performance in terms of the N∆-structure?
+    answer: Nominal performance requires ‖N22‖∞ < 1 with ∆ = 0, meaning the performance transfer function is small for the nominal plant. Robust performance requires ‖Fu(N, ∆)‖∞ < 1 for all ∆ with ‖∆‖∞ ≤ 1, meaning performance must remain acceptable across the entire uncertainty set.
+
+  - id: q7
+    rarity: Industrial Grade
+    question: Why is it the sub-block N11, rather than the full matrix N, that determines robust stability in the M∆-structure?
+    answer: The only mechanism by which ∆ can destabilize the nominally stable system is through the feedback term (I − N11∆)⁻¹. If this inverse exists and is stable for all admissible ∆, then Fu(N, ∆) is stable regardless of N12, N21, N22. Therefore robust stability reduces to analysing the loop formed by M = N11 feeding back through ∆.
+
+  - id: q8
+    rarity: Mil-Spec
+    question: In the N∆-structure, what goes wrong if nominal stability does not hold before attempting robust stability analysis?
+    answer: If N is not internally stable with ∆ = 0, then the M∆-structure analysis loses its foundation — the stability of Fu(N, ∆) can no longer be attributed solely to the feedback term (I − N11∆)⁻¹, because open-loop unstable modes in N itself will cause instability independently of ∆. Robust stability theorems such as the Small Gain Theorem presuppose nominal stability; applying them without it gives meaningless or dangerously optimistic conclusions.
+
+  - id: q9
+    rarity: Mil-Spec
+    question: Why is robust performance strictly harder to achieve than robust stability, even when the same uncertainty set is involved?
+    answer: Robust stability only requires the closed-loop poles to remain in the left half-plane for all ∆, a binary condition. Robust performance additionally requires the worst-case gain from w to z to stay below 1 for every ∆ simultaneously. This couples the performance objective with the uncertainty, turning the design problem into a minimax optimisation — minimising over controllers while maximising over ∆ — which is fundamentally harder and generally non-convex.
+
+  - id: q10
+    rarity: Consumer Grade
+    question: What does the H∞ norm of a transfer matrix represent physically, and why is it a natural objective for robust control design?
+    answer: The H∞ norm equals the worst-case input-to-output gain of the system over all frequencies and all unit-norm input signals. It is a natural robust control objective because it directly bounds the largest possible effect that any bounded disturbance or uncertainty can have on the outputs, providing a hard performance guarantee rather than an average-case one.
+
+  - id: q11
+    rarity: Industrial Grade
+    question: What is the H∞ optimal control problem, and how is it formulated using the generalized plant framework?
+    answer: The H∞ optimal control problem seeks a stabilizing controller K that minimizes ‖Fl(P, K)‖∞, the H∞ norm of the closed-loop transfer matrix from exogenous inputs w to performance outputs z. The generalized plant P encodes all plant dynamics and weighting functions, so the single minimization captures tracking, disturbance rejection, and robustness objectives simultaneously.
+
+  - id: q12
+    rarity: Industrial Grade
+    question: How do the disturbance models assumed by H2 and H∞ control differ, and what practical consequence does this have for controller design?
+    answer: H2 control assumes the disturbance is a white-noise stochastic signal and minimises the RMS output energy, yielding a controller optimal on average. H∞ control assumes the disturbance is the worst-case deterministic signal with bounded energy and minimises the peak gain, yielding a controller that provides a guaranteed bound in the worst case. H∞ controllers therefore tend to be more conservative but offer hard performance certificates valid for any admissible input.
+
+  - id: q13
+    rarity: Consumer Grade
+    question: In mixed-sensitivity H∞ control, what is the role of frequency-dependent weighting functions, and why are they shaped as low-pass or high-pass filters?
+    answer: Weighting functions translate engineering objectives into the H∞ norm minimization. A low-pass weight on the sensitivity S penalizes large S at low frequencies, enforcing disturbance rejection and reference tracking where the loop gain must be high. A high-pass weight on KS or T penalizes large gains at high frequencies, enforcing low control effort and noise attenuation where the loop gain must roll off. Together they encode the classic loop-shaping trade-off inside a single norm.
+
+  - id: q14
+    rarity: Mil-Spec
+    question: In the H∞ state-feedback problem, the Riccati equation contains an extra term relative to the LQR Riccati equation. What does this extra term represent, and how does it alter the resulting controller?
+    answer: The extra term γ⁻²PB₂B₂ᵀP accounts for the adversarial disturbance w that the H∞ formulation maximizes over. It acts as a positive feedback correction that makes the Riccati solution P larger than the LQR solution, driving the state-feedback gain F = −B₃ᵀP to be more aggressive. The controller must simultaneously stabilize the plant and counter the worst-case disturbance, so it is inherently more cautious than LQR at the frequencies where disturbance amplification is greatest.
+
+  - id: q15
+    rarity: Classified
+    question: The H∞ synthesis problem is typically solved for a bound ‖Fl(P,K)‖∞ < γ rather than seeking the true minimum. Why is finding a strictly optimal H∞ controller generally impractical, and what does the parameter γ control in the design?
+    answer: >
+      The infimum over all stabilizing K of ‖Fl(P,K)‖∞ may not be attained by any proper, realizable controller — it is approached only in the limit as controller order or gains grow without bound. Solving for a suboptimal γ is therefore the standard approach: given γ above the minimum, the Riccati equations have finite positive-definite solutions, yielding a well-defined central controller. Reducing γ tightens the performance requirement, pushes the Riccati solutions toward singularity, and eventually makes existence conditions fail, marking the achievable limit.
+
+  - id: q16
+    rarity: Consumer Grade
+    question: What is robust stability in the context of a system affected by model uncertainty, and how does it differ from nominal stability?
+    answer: Nominal stability means the closed-loop system is stable for the exact nominal plant model with no uncertainty present. Robust stability means the closed-loop system remains stable for every plant in the uncertainty set — that is, for all admissible perturbations ∆ satisfying ‖∆‖∞ ≤ 1. A nominally stable system can fail to be robustly stable if the controller is sensitive to plant variations, whereas a robustly stable controller maintains closed-loop stability across the entire family of perturbed plants.
+
+  - id: q17
+    rarity: Consumer Grade
+    question: What is the Small Gain Theorem, and what condition must the loop gain satisfy for an interconnected system to be guaranteed stable?
+    answer: The Small Gain Theorem states that a feedback interconnection of two stable systems M and ∆ is stable if the product of their gains around the loop is strictly less than one, i.e., ‖M‖∞‖∆‖∞ < 1. Neither system alone needs to have gain less than one; it is the loop product that matters. When this condition holds, the loop cannot sustain growing oscillations and the interconnection is guaranteed to be stable regardless of the phase relationship between M and ∆.
+
+  - id: q18
+    rarity: Industrial Grade
+    question: How is the Small Gain Theorem applied to certify robust stability of a closed-loop system with norm-bounded uncertainty ∆?
+    answer: The uncertain closed-loop is rearranged into an M∆-structure where M is the stable nominal closed-loop transfer matrix seen by the uncertainty and ∆ is the uncertainty block with ‖∆‖∞ < ε. The Small Gain Theorem then guarantees robust stability if ‖M‖∞ < 1/ε, equivalently ε‖M‖∞ < 1. Designing the controller K to minimize ‖M‖∞ therefore maximizes the tolerable uncertainty size ε, directly linking the H∞ design objective to the robustness margin.
+
+  - id: q19
+    rarity: Industrial Grade
+    question: Why are classical gain and phase margins insufficient for certifying robust stability of MIMO systems, and what does coprime factor uncertainty offer instead?
+    answer: Gain and phase margins are scalar, single-loop concepts defined for one frequency-dependent channel at a time; they give no information about how simultaneous perturbations across multiple channels interact. In MIMO systems, a plant can have adequate margins on every individual channel yet fail under combined directional perturbations. Coprime factor uncertainty characterises perturbations to both the numerator N and denominator M of the plant simultaneously, capturing a richer class of MIMO plant variations and enabling a single scalar robustness certificate via the H∞ norm of the closed-loop map M∆.
+
+  - id: q20
+    rarity: Mil-Spec
+    question: In the coprime factor robust stabilization framework, what does the quantity γK represent, and why does minimizing it maximize the tolerable uncertainty?
+    answer: γK is the H∞ norm of the closed-loop map from the uncertainty output ϕ to the signals [u; y] entering the uncertainty, specifically γK = ‖[K; I](I − GK)⁻¹M⁻¹‖∞. It measures how strongly the closed loop amplifies uncertainty excitations back into the uncertainty input channel. The maximum tolerable uncertainty size is εmax = 1/γK, so minimizing γK over all stabilizing controllers directly maximizes the size of coprime factor perturbations [∆N ∆M] the closed loop can withstand before losing stability.
+
+  - id: q21
+    rarity: Mil-Spec
+    question: In the left coprime factorization G = M⁻¹N, what role does the coprimeness condition play, and what goes wrong if it is violated?
+    answer: Coprimeness — the existence of stable X, Y such that XM + YN = I — ensures that M and N share no unstable common factors, meaning all unstable plant poles appear explicitly in M and all unstable zeros appear explicitly in N. If the factorization were not coprime, a common unstable factor could cancel between M and N, hiding an unstable mode from the controller and the uncertainty model. Such hidden modes would be unobservable in the perturbed plant representation, making robust stability analysis invalid and potentially leaving an unstable mode unaddressed by the controller.
+
+  - id: q22
+    rarity: Restricted
+    question: The robust stabilization condition requires ‖M∆‖∞ < 1/ε, where M∆ = [K; I](I − GK)⁻¹M⁻¹. Explain how each factor in M∆ contributes to the amplification of uncertainty, and why all three must be kept small simultaneously.
+    answer: The factor M⁻¹ maps uncertainty output ϕ into an equivalent plant input disturbance; a poorly conditioned or large M⁻¹ at some frequency means even small coprime perturbations inject large equivalent disturbances. The factor (I − GK)⁻¹ is the closed-loop sensitivity to those disturbances; large sensitivity at any frequency amplifies the injected signal further. The factor [K; I] projects the resulting output y into the combined signal [u; y] that feeds back into ∆; a high-gain controller K inflates u and thereby closes a large loop around the uncertainty. Robust stability requires the composed gain of all three factors to remain below 1/ε across all frequencies, so no single factor can be sacrificed to reduce another without a global accounting via the H∞ norm.
+
+  - id: q23
+    rarity: Exceedingly Rare
+    question: The Small Gain Theorem guarantees robust stability through a purely gain-based condition, with no reference to phase. Under what circumstances does this make the theorem conservative, and how does the structure of the uncertainty set determine whether that conservatism is unavoidable or can be reduced?
+    answer: >
+      The Small Gain Theorem is conservative whenever the actual destabilizing perturbations are restricted to a structured set — for example, block-diagonal ∆ with blocks of prescribed sizes — because the worst-case phase alignment assumed by the theorem (all blocks conspiring simultaneously at the same frequency) may not be achievable within the structure. For unstructured, fully dense uncertainty where any ∆ with ‖∆‖∞ ≤ 1 is admissible, no phase information is available and the theorem is tight: there exists a ∆ that exactly achieves the gain bound while destabilizing the loop. For structured uncertainty, the structured singular value µ replaces the H∞ norm and exploits the block structure to give a less conservative, potentially tight robustness condition. The conservatism of the Small Gain Theorem is therefore not an intrinsic flaw but a reflection of how much structural information about ∆ is being discarded.

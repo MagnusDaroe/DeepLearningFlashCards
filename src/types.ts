@@ -2,6 +2,7 @@ export interface Question {
   id: string
   question: string
   answer: string
+  rarity: string
 }
 
 export interface Topic {
@@ -11,4 +12,4 @@ export interface Topic {
   questions: Question[]
 }
 
-export type AppView = 'wheel' | 'card' | 'history'
+export type AppView = 'roulette' | 'card' | 'history'
